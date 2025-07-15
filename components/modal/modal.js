@@ -26,7 +26,7 @@ export function createModal(themeColors) {
                         style="color: ${themeColors.textDark}; border-color: ${themeColors.border};"></textarea>
                 </div>
                 <button type="submit" class="font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                    style="background-color: ${themeColors.primary}; color: ${themeColors.textLight};">
+                    style="background-color: ${themeColors.secondary}; color: ${themeColors.textLight};">
                     Continuar para Entrega
                 </button>
             </form>

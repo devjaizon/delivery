@@ -1,10 +1,25 @@
-export const createContent = (items, themeColors) => {
+export const createContent = (items, themeColors, category) => {
+    console.log('Categoria recebida em createContent:', category);
     const main = document.createElement('main');
-    main.id = 'menu-content'; // Adiciona um ID para facilitar a delegação de eventos
+    main.id = 'menu-content';
     main.className = 'py-6';
 
+    let categoryHeader = '';
+    if (category && category.image) {
+        categoryHeader = `
+            <div class="relative w-full h-48 bg-cover bg-center rounded-lg overflow-hidden mb-6" style="background-image: url('${category.image}');">
+                <div class="absolute inset-0 bg-black bg-opacity-${category.opacity} backdrop-blur-sm flex items-center justify-center">
+                    <div class="text-center text-white p-4">
+                        <h2 class="text-4xl font-bold">${category.name}</h2>
+                        <p class="text-lg mt-2">${category.description}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
     if (items.length === 0) {
-        main.innerHTML = `<p class="text-center" style="color: ${themeColors.textDark};">Nenhum item encontrado nesta categoria.</p>`;
+        main.innerHTML = `${categoryHeader}<p class="text-center" style="color: ${themeColors.textDark};">Nenhum item encontrado nesta categoria.</p>`;
         return main;
     }
 
@@ -30,7 +45,7 @@ export const createContent = (items, themeColors) => {
     });
 
     content += '</div>';
-    main.innerHTML = content;
+    main.innerHTML = categoryHeader + content;
 
     return main;
 }

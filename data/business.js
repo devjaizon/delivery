@@ -7,7 +7,7 @@ export const fetchBusinessInfo = async () => {
     const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ6a5sGjwhuGckjG_TSmGCBj6yXZ8D82sBgXioOEJOj04OG5N_t1idq_lMTBInLbhZQnk7h224F5-0U/pub?gid=0&single=true&output=csv';
 
     try {
-        const response = await fetch(GOOGLE_SHEET_CSV_URL);
+        const response = await fetch(GOOGLE_SHEET_CSV_URL, { cache: 'no-store' });
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -57,8 +57,18 @@ function parseBusinessCSV(csv) {
             businessInfo.name = value;
         } else if (header === 'PHONE') {
             businessInfo.phone = value;
+        } else if (header === 'LOGO') {
+            businessInfo.logo = value;
+        } else if (header === 'FAVICON') {
+            businessInfo.favicon = value;
+        } else if (header === 'IMAGE') {
+            businessInfo.image = value;
+        } else if (header === 'SLOGAN') {
+            businessInfo.slogan = value;
         }
     });
+
+    // console.log(businessInfo);
 
     return businessInfo;
 }

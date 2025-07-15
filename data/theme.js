@@ -8,11 +8,12 @@ export const fetchThemeColors = async () => {
     const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ6a5sGjwhuGckjG_TSmGCBj6yXZ8D82sBgXioOEJOj04OG5N_t1idq_lMTBInLbhZQnk7h224F5-0U/pub?gid=1367384307&single=true&output=csv';
 
     try {
-        const response = await fetch(GOOGLE_SHEET_CSV_URL);
+        const response = await fetch(GOOGLE_SHEET_CSV_URL, { cache: 'no-store' });
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
+
         const csvText = await response.text();
         return parseThemeCSV(csvText);
     } catch (error) {
@@ -27,7 +28,8 @@ export const fetchThemeColors = async () => {
             backgroundLight: 'rgb(249, 250, 251)',
             backgroundDark: 'rgb(31, 41, 55)',
             border: 'rgba(209, 213, 219, 0.048)',
-            iconColor: 'rgba(255, 255, 255, 0.164)' // Default icon color
+            iconColor: 'rgba(255, 255, 255, 0.164)', // Default icon color
+            heroOpacity: 70
         };
     }
 };
@@ -58,6 +60,7 @@ function parseThemeCSV(csv) {
             }
         }
         values.push(currentField.trim()); // Adiciona o último campo
+
         return values;
     };
 

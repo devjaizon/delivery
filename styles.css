@@ -33,8 +33,11 @@ body {
 
 .menu-fixed {
     position: fixed;
-    top: 0;
     left: 0;
     right: 0;
-    z-index: 40;
+    width: 100%; /* Ensure full width when fixed */
+    z-index: 60; /* Increased z-index to be above modals */
 }
+
+
+

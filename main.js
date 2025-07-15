@@ -5,14 +5,16 @@ import { createContent } from './components/content.js';
 import { createFooter } from './components/footer.js';
 import { createModal } from './components/modal/modal.js'; // Caminho atualizado
 import { createOptionsModal } from './components/optionsModal.js';
-import { createCheckoutConfirmationModal } from './components/checkoutConfirmationModal.js';
-import { createNotificationModal } from './components/notificationModal.js';
+import { createCheckoutConfirmationModal } from './components/modal/checkoutConfirmationModal.js';
+import { createNotificationModal } from './components/modal/notificationModal.js';
 import { createOrderSummaryModal } from './components/orderSummaryModal.js';
 import { fetchMenuItems } from './data/items.js';
 import { fetchCategories } from './data/categories.js';
 import { fetchBusinessInfo } from './data/business.js'; // Importa fetchBusinessInfo
 import { sendWhatsAppOrder } from './components/modal/finishPurchase.js'; // Importa a função de envio do WhatsApp
 import { setupModalControls } from './components/modal/modalControls.js'; // Importa o novo módulo
+import { updateContent } from './utils/update.js';
+
 
 document.addEventListener('DOMContentLoaded', async () => {
     const app = document.getElementById('app');
@@ -31,8 +33,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     const categories = await fetchCategories(); // Fetch categories
     const businessInfo = await fetchBusinessInfo(); // Fetch business info
 
+    // --- Mudar o título de acordo com o nome do negício
+    document.title = businessInfo.name;
+
+    // --- Define o Favicon dinamicamente ---
+    if (businessInfo.favicon) {
+        const favicon = document.createElement('link');
+        favicon.rel = 'icon';
+        favicon.href = businessInfo.favicon;
+        // Opcional: Adicionar o tipo se souber, ex: image/svg+xml ou image/png
+        // favicon.type = 'image/svg+xml'; 
+        document.head.appendChild(favicon);
+    }
+
     // --- Elementos DOM (independentes de menuItems) ---
-    const header = createHeader(themeColors);
+    const header = createHeader(themeColors, businessInfo);
     const footer = createFooter(themeColors);
     const cartModal = createModal(themeColors);
     const optionsModal = createOptionsModal(themeColors);
@@ -51,10 +66,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- Elementos DOM (dependentes de menuItems) ---
     const menu = createMenu(categories, themeColors); // Pass categories to createMenu
-    let content = createContent(menuItems.filter(item => item.categories.includes('Destaques') && item.available), themeColors);
+    header.appendChild(menu); // Append menu directly to header
+    const DestaquesCategory = categories.find(c => c.name === 'Destaques');
+    let content = createContent(menuItems.filter(item => item.categories.includes('Destaques') && item.available), themeColors, DestaquesCategory);
 
     // --- Renderização de elementos dependentes ---
-    menuContainer.appendChild(menu);
     app.appendChild(content);
 
     const cartItemsContainer = document.getElementById('cart-items');
@@ -69,46 +85,42 @@ document.addEventListener('DOMContentLoaded', async () => {
     const orderSummaryDetailsElement = document.getElementById('order-summary-details');
 
     // --- Lógica do Menu Sticky ---
+    // --- Lógica do Menu Sticky ---
     const menuSentinel = document.createElement('div');
     menuSentinel.id = 'menu-sentinel';
-    menuContainer.parentNode.insertBefore(menuSentinel, menuContainer.nextSibling);
+    header.appendChild(menuSentinel); // Insert sentinel after menu within header
+
+    const updatePadding = () => {
+        const menuHeight = menu.offsetHeight;
+
+        if (menu.classList.contains('menu-fixed')) {
+            document.body.style.paddingTop = `${menuHeight}px`;
+            menu.style.top = '0px';
+        } else {
+            document.body.style.paddingTop = '0px';
+            menu.style.top = 'auto';
+        }
+    };
 
     const observer = new IntersectionObserver(
         ([entry]) => {
             if (entry.isIntersecting) {
                 menu.classList.remove('menu-fixed');
-                document.body.style.paddingTop = `${header.offsetHeight}px`;
             } else {
                 menu.classList.add('menu-fixed');
-                document.body.style.paddingTop = `${header.offsetHeight + menu.offsetHeight}px`;
             }
+            updatePadding();
         },
         { threshold: [0] }
     );
     observer.observe(menuSentinel);
 
-    document.body.style.paddingTop = `${header.offsetHeight + menu.offsetHeight}px`;
+    // Initial padding adjustment and on resize
+    window.addEventListener('load', updatePadding);
+    window.addEventListener('resize', updatePadding);
 
     // --- Funções de Renderização e Filtro ---
-    const renderContent = (category, themeColors) => {
-        const filteredItems = menuItems.filter(item => item.categories.includes(category) && item.available);
-        const newContent = createContent(filteredItems, themeColors);
-        app.replaceChild(newContent, content);
-        content = newContent;
-
-        // Update active category button style
-        document.querySelectorAll('.category-btn').forEach(button => {
-            if (button.getAttribute('data-category') === category) {
-                button.style.backgroundColor = themeColors.primary;
-                button.style.color = themeColors.textLight;
-                button.onmouseout = () => { button.style.backgroundColor = themeColors.primary; }; // Keep active color on mouse out
-            } else {
-                button.style.backgroundColor = themeColors.backgroundDark;
-                button.style.color = themeColors.textLight;
-                button.onmouseout = () => { button.style.backgroundColor = themeColors.backgroundDark; }; // Revert to default on mouse out
-            }
-        });
-    };
+    
 
     // --- Funções do Carrinho ---
     const updateCartTotal = () => {
@@ -203,7 +215,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Eventos do Menu de Categorias
         if (target.classList.contains('category-btn')) {
-            renderContent(target.getAttribute('data-category'), themeColors);
+            const categoryName = target.getAttribute('data-category');
+            const category = categories.find(c => c.name === categoryName);
+            if (category) {
+                content = updateContent(category, menuItems, themeColors, app, content);
+            }
         }
 
         // Eventos para abrir o Modal de Opções
@@ -269,7 +285,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             addToCart(itemId, quantity, selectedOptionals);
             optionsModalElement.style.display = 'none'; // Fecha o modal de opções
         }
-        
+
         if (target.classList.contains('close-options-btn')) {
             optionsModalElement.style.display = 'none';
         }

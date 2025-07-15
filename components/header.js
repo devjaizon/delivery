@@ -1,13 +1,17 @@
-export function createHeader(themeColors) {
+export function createHeader(themeColors, businessInfo) {
     const header = document.createElement('header');
-    header.className = 'fixed top-0 left-0 right-0 shadow w-full z-50';
-    header.style.backgroundColor = themeColors.backgroundLight;
+    header.className = 'w-full bg-cover bg-center text-white';
+    header.style.backgroundImage = `url(${businessInfo.image})`;
+    header.style.backgroundColor = themeColors.backgroundLight; // Fallback color
+
+    const logoHtml = businessInfo.logo ? `<div class="mx-auto mb-4 inline-block p-1 rounded-full" style="border: 2px solid ${themeColors.primary};"><img src="${businessInfo.logo}" alt="Logo ${businessInfo.name}" class="h-24 w-24 rounded-full"></div>` : '';
 
     const headerContent = `
-        <div class="container mx-auto px-4 py-6">
-            <h1 class="text-3xl font-bold" style="color: ${themeColors.textDark};">Restaurante Delícia</h1>
-            <p style="color: ${themeColors.textDark};">O melhor da cidade</p>
-        </div>
+    <div class="mx-auto w-full h-full px-4 py-16 text-center bg-black bg-opacity-${themeColors.heroOpacity}">
+        ${logoHtml}
+        <h1 class="text-5xl font-bold mb-2">${businessInfo.name}</h1>
+        <p class="text-xl">${businessInfo.slogan}</p>
+    </div>
     `;
 
     header.innerHTML = headerContent;

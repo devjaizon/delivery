@@ -1,5 +1,4 @@
 export const createContent = (items, themeColors, category) => {
-    console.log('Categoria recebida em createContent:', category);
     const main = document.createElement('main');
     main.id = 'menu-content';
     main.className = 'py-6';
